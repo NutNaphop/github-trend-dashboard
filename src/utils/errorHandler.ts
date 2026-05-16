@@ -7,19 +7,19 @@ export const handleGithubError = (error: any) => {
 
     switch (status) {
         case 401:
-            message = "Unauthorized: GitHub Token ไม่ถูกต้อง หรือหมดอายุ";
+            message = "Unauthorized: GitHub Token is not valid.";
             break;
         case 403:
-            message = "Rate Limit Exceeded: โควต้าการดึงข้อมูลจาก GitHub เต็มแล้ว กรุณารอสักครู่";
+            message = "Rate Limit Exceeded: Quota has reach a limit. Try again next time";
             break;
         case 404:
-            message = "Not Found: ไม่พบข้อมูล Repository หรือ User ที่คุณค้นหา";
+            message = "Not Found: No data found";
             break;
         case 422:
-            message = "Unprocessable Entity: คำค้นหาไม่ถูกต้อง หรือส่ง Parameter ไปผิดรูปแบบ";
+            message = "Unprocessable Entity: Wrong pattern or parameter";
             break;
         default:
-            message = error?.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+            message = error?.message || "Unknow error";
     }
 
     return NextResponse.json(

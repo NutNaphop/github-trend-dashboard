@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import RepoCard from "./RepoCard";
-import { Loader2 } from "lucide-react";
+import StateWrapper from "../ui/StateWrapper";
 
 type Period = "daily" | "weekly" | "monthly";
 
@@ -19,11 +19,11 @@ export default function TrendingSection() {
       try {
         const response = await fetch(`/api/repos/trending?period=${period}`);
         const json = await response.json();
-        
+
         if (!response.ok || !json.success) {
           throw new Error(json.message || "Failed to fetch trending repos");
         }
-        
+
         setRepos(json.data || []);
       } catch (err: any) {
         setError(err.message);
@@ -49,11 +49,10 @@ export default function TrendingSection() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-                period === p
-                  ? "bg-blue-600 text-white"
-                  : "text-muted hover:text-white"
-              }`}
+              className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${period === p
+                ? "bg-blue-600 text-white"
+                : "text-muted hover:text-white"
+                }`}
             >
               {p === "daily" ? "Daily" : p === "weekly" ? "This Week" : "This Month"}
             </button>
@@ -62,17 +61,12 @@ export default function TrendingSection() {
       </div>
 
       <div className="bg-transparent">
-        {loading ? (
-          <div className="flex items-center justify-center py-12 text-blue-500">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="text-red-400 p-4 border border-red-900/50 bg-red-900/10 rounded-lg text-sm text-center">
-            {error}
-          </div>
-        ) : repos.length === 0 ? (
-          <div className="text-muted text-center py-8">No trending repositories found.</div>
-        ) : (
+        <StateWrapper
+          isLoading={loading}
+          error={error}
+          isEmpty={repos.length === 0}
+          emptyMessage="No trending repositories found."
+        >
           <div className="flex flex-col">
             {repos.map((repo) => (
               <RepoCard
@@ -87,7 +81,7 @@ export default function TrendingSection() {
               />
             ))}
           </div>
-        )}
+        </StateWrapper>
       </div>
     </div>
   );
