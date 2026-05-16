@@ -1,0 +1,27 @@
+export const LANGUAGE_COLORS: Record<string, string> = {
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  Java: "#b07219",
+  Go: "#00ADD8",
+  Ruby: "#701516",
+  "C++": "#f34b7d",
+  C: "#555555",
+  "C#": "#178600",
+  PHP: "#4F5D95",
+  Rust: "#dea584",
+  Swift: "#F05138",
+  Kotlin: "#A97BFF",
+  Dart: "#00B4AB",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  Vue: "#41b883",
+  Shell: "#89e051",
+  Jupyter: "#DA5B0B",
+  "Jupyter Notebook": "#DA5B0B",
+};
+
+export const getLanguageColor = (language: string | null | undefined): string => {
+  if (!language) return "#8b949e"; // default muted color
+  return LANGUAGE_COLORS[language] || "#8b949e";
+};
