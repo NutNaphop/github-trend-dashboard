@@ -1,4 +1,5 @@
 import { formatToLocalISO } from "@/utils/dateUtils";
+import { parseLinkHeader } from "@/utils/linkHeaderParser";
 import { Octokit } from "octokit";
 import { unstable_cache } from "next/cache";
 
@@ -27,7 +28,7 @@ const githubRepoService = {
                 if (response.data.items.length < 100) break;
             }
 
-            // ตัดให้เหลือเท่า limit (เผื่อกรณีมันเกิน)
+            // Split out to the limit
             repos = repos.slice(0, limit);
 
             const languageCounts: Record<string, number> = {}
@@ -100,7 +101,7 @@ const githubRepoService = {
 
         try {
             const response = await octokit.rest.search.repos({
-                q: `created:${fromDate}..${toDate} stars:>10 fork:false archived:false`,
+                q: `created:${fromDate}..${toDate} stars:>100 fork:false archived:false`,
                 sort: "stars",
                 order: "desc",
                 per_page: limit
@@ -124,7 +125,7 @@ const githubRepoService = {
 
         try {
             const response = await octokit.rest.search.repos({
-                q: `created:${fromStart}..${toEnd} stars:>10 fork:false archived:false`,
+                q: `created:${fromStart}..${toEnd} stars:>1000 fork:false archived:false`,
                 sort: "stars",
                 order: "desc",
                 per_page: limit
@@ -134,32 +135,65 @@ const githubRepoService = {
             throw error
         }
     }, ['trending-month'], { revalidate: 3600 }),
+
+    getRepository: unstable_cache(async (owner: string, repo: string) => {
+        try {
+            const response = await octokit.rest.repos.get({
+                owner,
+                repo
+            });
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching repo ${owner}/${repo}:`, error);
+            throw error;
+        }
+    }, ['repo-detail'], { revalidate: 3600 }),
 }
 
 // === SEARCH FUNCTION SERVICE==
 const githubSearchService = {
-    searchUsers: async (keyword: string) => {
+    searchByUser: async (username: string, page: number = 1, limit: number = 10) => {
         try {
-            const response = await octokit.rest.search.repos({
-                q: `user:${keyword}`
-            })
-            return response.data.items
-        } catch (error) {
-            throw error
-        }
-
-    },
-
-    searchOrg: async (keyword: string) => {
-        try {
-            const response = await octokit.rest.search.repos({
-                q: `org:${keyword}`
-            })
-            return response.data.items
-        } catch (error) {
-            throw error
+            const response = await octokit.rest.repos.listForUser({
+                username,
+                sort: "updated",
+                per_page: limit,
+                page: page,
+            });
+            const totalPages = parseLinkHeader(response.headers.link);
+            return {
+                items: response.data,
+                totalPages: totalPages === 1 && page > 1 ? page : totalPages,
+            };
+        } catch (error: any) {
+            if (error.status === 404) {
+                return { items: [], totalPages: 1 };
+            }
+            throw error;
         }
     },
+
+    searchByOrg: async (org: string, page: number = 1, limit: number = 10) => {
+        try {
+            const response = await octokit.rest.repos.listForOrg({
+                org,
+                sort: "updated",
+                per_page: limit,
+                page: page,
+            });
+            const totalPages = parseLinkHeader(response.headers.link);
+            return {
+                items: response.data,
+                totalPages: totalPages === 1 && page > 1 ? page : totalPages,
+            };
+        } catch (error: any) {
+            if (error.status === 404) {
+                return { items: [], totalPages: 1 };
+            }
+            throw error;
+        }
+    },
+
 
     serchFullName: async (owner: string, repo: string) => {
         try {
@@ -172,16 +206,21 @@ const githubSearchService = {
         }
     },
 
-    searchRepository: async (keyword: string) => {
+    searchRepository: unstable_cache(async (keyword: string, page: number = 1, limit: number = 10) => {
         try {
             const response = await octokit.rest.search.repos({
-                q: `${keyword} in:name`
+                q: `${keyword} in:name`,
+                per_page: limit,
+                page: page
             })
-            return response.data.items
+            return {
+                items: response.data.items,
+                totalCount: response.data.total_count
+            }
         } catch (error) {
             throw error
         }
-    }
+    }, ['search-repo'], { revalidate: 900 }) // Cache for 15 minutes
 }
 
 export { githubRepoService, githubSearchService }
