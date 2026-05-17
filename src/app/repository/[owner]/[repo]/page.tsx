@@ -132,7 +132,7 @@ export default async function RepositoryDetailPage({
 
               {/* Action Button */}
               <div className="pt-4 pb-8">
-                <a
+                <Link
                   href={repoData.html_url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -140,7 +140,7 @@ export default async function RepositoryDetailPage({
                 >
                   Go to repository
                   <ChevronRight className="w-5 h-5" />
-                </a>
+                </Link>
               </div>
 
             </div>
