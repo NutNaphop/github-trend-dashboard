@@ -1,0 +1,32 @@
+info:
+  name: RepoSearch
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: https://api.github.com/search/repositories?q=dun-diary-application in:name
+  headers:
+    - name: Accept
+      value: application/vnd.github+json
+    - name: X-GitHub-Api-Version
+      value: 2026-03-10
+  params:
+    - name: q
+      value: dun-diary-application in:name
+      type: query
+    - name: per_page
+      value: "5"
+      type: query
+      disabled: true
+    - name: page
+      value: "1"
+      type: query
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

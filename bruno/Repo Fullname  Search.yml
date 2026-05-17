@@ -1,0 +1,19 @@
+info:
+  name: Repo Fullname  Search
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: https://api.github.com/search/repositories?q=repo:NutNaphop/MeowWord
+  params:
+    - name: q
+      value: repo:NutNaphop/MeowWord
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
