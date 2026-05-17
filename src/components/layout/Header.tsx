@@ -29,10 +29,8 @@ export default function Header() {
         return;
       }
       const parts = trimmedQuery.split("/");
-      if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) {
-        const cleanOwner = parts[0].trim();
-        const cleanRepo = parts[1].trim();
-        router.push(`/repository/${cleanOwner}/${cleanRepo}`);
+      if (parts.length >= 2 && parts[0] && parts[1]) {
+        router.push(`/repository/${parts[0]}/${parts[1]}`);
         return;
       } else {
         setError("Invalid format. Use owner/repo (e.g., facebook/react)");
