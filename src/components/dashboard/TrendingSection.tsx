@@ -36,7 +36,7 @@ export default function TrendingSection() {
   }, [period]);
 
   return (
-    <div className="w-full mt-10">
+    <div className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 space-y-4 sm:space-y-0">
         <div>
           <h2 className="text-xl font-bold text-white">Trending Repository</h2>

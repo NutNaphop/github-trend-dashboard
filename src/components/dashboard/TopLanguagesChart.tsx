@@ -17,16 +17,8 @@ export default function TopLanguagesChart({ data }: TopLanguagesChartProps) {
     );
   }
 
-  // Calculate total for percentages if needed, though Recharts handles sizing
-  const total = data.reduce((acc, curr) => acc + curr.count, 0);
-
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-white">Top Programming Language</h2>
-        <p className="text-muted text-sm">Let's see what language it's on top</p>
-      </div>
-
       <div className="bg-card border border-border-subtle rounded-xl p-6">
         {/* Custom Legend */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
