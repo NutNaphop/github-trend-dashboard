@@ -1,0 +1,28 @@
+info:
+  name: Get Programing Lang
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: https://api.github.com/search/repositories?q=stars:>1 fork:false archived:false -topic:awesome -topic:list -topic:books&per_page=100&sort=stars&order=desc
+  params:
+    - name: q
+      value: stars:>1 fork:false archived:false -topic:awesome -topic:list -topic:books
+      type: query
+    - name: per_page
+      value: "100"
+      type: query
+    - name: sort
+      value: stars
+      type: query
+    - name: order
+      value: desc
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
