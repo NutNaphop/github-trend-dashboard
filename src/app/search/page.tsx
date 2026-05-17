@@ -4,6 +4,10 @@ import SearchResults from "@/components/search/SearchResults";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
+export const metadata = {
+  title: "Search",
+};
+
 export default function SearchPage() {
   return (
     <main className="min-h-screen text-foreground selection:bg-blue-500/30">

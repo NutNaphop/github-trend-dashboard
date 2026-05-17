@@ -6,6 +6,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatSizeFromKB, formatCompactNumber } from "@/utils/formatters";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ owner: string; repo: string }>;
+}) {
+  const { owner, repo } = await params;
+  return { title: `${owner}/${repo}` };
+}
 export default async function RepositoryDetailPage({
   params,
 }: {
