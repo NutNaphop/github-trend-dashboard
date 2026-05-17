@@ -66,7 +66,7 @@ export default function SearchResults() {
             Search Results for "{query}"
           </h2>
           <p className="text-muted text-sm mt-1">
-            Showing {type === "users" ? "repositories owned by this user/organization" : "repositories matching this name"}
+            Showing {type === "user" ? "repositories owned by this user" : type === "org" ? "repositories owned by this organization" : "repositories matching this name"}
           </p>
         </div>
         {!loading && pagination.totalItems > 0 && (

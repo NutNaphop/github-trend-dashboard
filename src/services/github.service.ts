@@ -1,4 +1,5 @@
 import { formatToLocalISO } from "@/utils/dateUtils";
+import { parseLinkHeader } from "@/utils/linkHeaderParser";
 import { Octokit } from "octokit";
 import { unstable_cache } from "next/cache";
 
@@ -100,7 +101,7 @@ const githubRepoService = {
 
         try {
             const response = await octokit.rest.search.repos({
-                q: `created:${fromDate}..${toDate} stars:>10 fork:false archived:false`,
+                q: `created:${fromDate}..${toDate} stars:>100 fork:false archived:false`,
                 sort: "stars",
                 order: "desc",
                 per_page: limit
@@ -124,7 +125,7 @@ const githubRepoService = {
 
         try {
             const response = await octokit.rest.search.repos({
-                q: `created:${fromStart}..${toEnd} stars:>10 fork:false archived:false`,
+                q: `created:${fromStart}..${toEnd} stars:>1000 fork:false archived:false`,
                 sort: "stars",
                 order: "desc",
                 per_page: limit
@@ -151,29 +152,47 @@ const githubRepoService = {
 
 // === SEARCH FUNCTION SERVICE==
 const githubSearchService = {
-    searchUsers: unstable_cache(async (keyword: string, page: number = 1, limit: number = 10) => {
+    searchByUser: async (username: string, page: number = 1, limit: number = 10) => {
         try {
-            const response = await octokit.rest.search.repos({
-                q: `user:${keyword}`,
-                sort: 'updated',
-                order: "desc",
+            const response = await octokit.rest.repos.listForUser({
+                username,
+                sort: "updated",
                 per_page: limit,
-                page: page
-            })
+                page: page,
+            });
+            const totalPages = parseLinkHeader(response.headers.link);
             return {
-                items: response.data.items,
-                totalCount: response.data.total_count
-            }
+                items: response.data,
+                totalPages: totalPages === 1 && page > 1 ? page : totalPages,
+            };
         } catch (error: any) {
-            if (error.status === 422) {
-                return {
-                    items: [],
-                    totalCount: 0
-                }
+            if (error.status === 404) {
+                return { items: [], totalPages: 1 };
             }
-            throw error
+            throw error;
         }
-    }, ['search-users'], { revalidate: 900 }),
+    },
+
+    searchByOrg: async (org: string, page: number = 1, limit: number = 10) => {
+        try {
+            const response = await octokit.rest.repos.listForOrg({
+                org,
+                sort: "updated",
+                per_page: limit,
+                page: page,
+            });
+            const totalPages = parseLinkHeader(response.headers.link);
+            return {
+                items: response.data,
+                totalPages: totalPages === 1 && page > 1 ? page : totalPages,
+            };
+        } catch (error: any) {
+            if (error.status === 404) {
+                return { items: [], totalPages: 1 };
+            }
+            throw error;
+        }
+    },
 
 
     serchFullName: async (owner: string, repo: string) => {

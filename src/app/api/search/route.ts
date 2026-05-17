@@ -17,20 +17,29 @@ export async function GET(request: Request) {
             )
         }
 
-        let results: { items: any[]; totalCount: number } = { items: [], totalCount: 0 };
+        let finalRepos: any[] = [];
+        let totalPages = 1;
+        let totalItems = 0;
 
-        if (type === "users") {
-            results = await githubSearchService.searchUsers(keyword, page, limit);
+        if (type === "user") {
+            const result = await githubSearchService.searchByUser(keyword, page, limit);
+            finalRepos = result.items;
+            totalPages = result.totalPages;
+            totalItems = result.items.length > 0 ? result.totalPages * limit : 0; // Estimate
+        } else if (type === "org") {
+            const result = await githubSearchService.searchByOrg(keyword, page, limit);
+            finalRepos = result.items;
+            totalPages = result.totalPages;
+            totalItems = result.items.length > 0 ? result.totalPages * limit : 0; // Estimate
         } else {
-            results = await githubSearchService.searchRepository(keyword, page, limit);
+            const result = await githubSearchService.searchRepository(keyword, page, limit);
+            finalRepos = result.items;
+            // Calculate total pages (GitHub limits results to top 1000 items maximum)
+            const maxGithubResults = 1000;
+            const actualTotal = Math.min(result.totalCount, maxGithubResults);
+            totalPages = Math.ceil(actualTotal / limit);
+            totalItems = result.totalCount;
         }
-
-        const finalRepos = results.items;
-
-        // Calculate total pages (GitHub limits results to top 1000 items maximum)
-        const maxGithubResults = 1000;
-        const actualTotal = Math.min(results.totalCount, maxGithubResults);
-        const totalPages = Math.ceil(actualTotal / limit);
 
         return NextResponse.json({
             success: true,
@@ -38,7 +47,7 @@ export async function GET(request: Request) {
             pagination: {
                 currentPage: page,
                 totalPages: totalPages,
-                totalItems: results.totalCount // original un-capped count for display
+                totalItems: totalItems
             }
 
         })

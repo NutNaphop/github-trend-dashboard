@@ -7,8 +7,9 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 
 export enum SearchType {
+  USER = "user",
+  ORG = "org",
   REPOSITORIES = "repositories",
-  USERS = "users",
   FULL_NAME = "full_name",
 }
 
@@ -65,8 +66,9 @@ function HeaderContent() {
   };
 
   const getPlaceholder = () => {
-    if (searchType === "full_name") return "Search owner/repo (e.g. facebook/react)...";
-    if (searchType === "users") return "Search user/org (e.g. vercel)...";
+    if (searchType === SearchType.FULL_NAME) return "Search owner/repo (e.g. facebook/react)...";
+    if (searchType === SearchType.USER) return "Search user (e.g. vercel)...";
+    if (searchType === SearchType.ORG) return "Search organization (e.g. microsoft)...";
     return "Search repos (e.g. react)...";
   };
   return (
@@ -103,8 +105,9 @@ function HeaderContent() {
             value={searchType}
             onChange={(e) => setSearchType(e.target.value as SearchType)}
           >
+            <option value="user">User</option>
+            <option value="org">Organization</option>
             <option value="repositories">Repository Name</option>
-            <option value="users">User / Org</option>
             <option value="full_name">Full Repository</option>
           </select>
           <div className="h-6 w-px bg-gray-300 mx-2"></div>
