@@ -2,18 +2,40 @@
 
 import { Search } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import Link from "next/link";
 
-export default function Header() {
-  const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState<"users" | "repositories" | "full_name">("repositories");
-  const [error, setError] = useState("");
+export enum SearchType {
+  REPOSITORIES = "repositories",
+  USERS = "users",
+  FULL_NAME = "full_name",
+}
+
+function HeaderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams() // Fetch Current Query 
+  const pathName = usePathname() // Fetch Current Path
+
+  const [query, setQuery] = useState(searchParams.get("q") || "")
+  const [searchType, setSearchType] = useState<SearchType>(SearchType.REPOSITORIES)
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (pathName.startsWith("/repository/")) {
+      setSearchType(SearchType.FULL_NAME)
+      setQuery(pathName.replace("/repository/", ""))
+    } else {
+      setSearchType(
+        (searchParams.get("type") as SearchType) || SearchType.REPOSITORIES
+      )
+      setQuery(searchParams.get("q") || "")
+    }
+  }, [pathName, searchParams])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedQuery = query.trim();
+    const trimmedQuery = query.trim()
 
     // 1. Invalid search input validation
     if (!trimmedQuery) {
@@ -25,7 +47,7 @@ export default function Header() {
     // 2. Explicit Routing based on Dropdown
     if (searchType === "full_name") {
       if (!trimmedQuery.includes("/")) {
-        setError("Please enter in owner/repo format (e.g., facebook/react)");
+        setError("Please enter in owner/repo format (e.g., facebook/react)")
         return;
       }
       const parts = trimmedQuery.split("/");
@@ -51,7 +73,7 @@ export default function Header() {
     <header className="flex flex-col items-center justify-center pt-10 pb-6 space-y-4">
       {/* Logo and Title */}
       <div className="flex flex-col items-center space-y-2">
-        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+        <Link href={"/"} title="Go to home" className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-200">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -64,7 +86,7 @@ export default function Header() {
               clipRule="evenodd"
             />
           </svg>
-        </div>
+        </Link>
         <h1 className="text-2xl font-bold text-white tracking-wide">
           Github Trend
         </h1>
@@ -79,7 +101,7 @@ export default function Header() {
           <select
             className="h-full bg-transparent text-sm font-semibold text-gray-700 outline-none border-none pr-2 cursor-pointer"
             value={searchType}
-            onChange={(e) => setSearchType(e.target.value as "users" | "repositories" | "full_name")}
+            onChange={(e) => setSearchType(e.target.value as SearchType)}
           >
             <option value="repositories">Repository Name</option>
             <option value="users">User / Org</option>
@@ -106,4 +128,12 @@ export default function Header() {
       </div>
     </header>
   );
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={<div className="h-40 w-full animate-pulse bg-transparent"></div>}>
+      <HeaderContent />
+    </Suspense>
+  )
 }
