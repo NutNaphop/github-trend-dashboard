@@ -1,13 +1,58 @@
+"use client";
+
 import { Search } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState<"users" | "repositories" | "full_name">("repositories");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedQuery = query.trim();
+
+    // 1. Invalid search input validation
+    if (!trimmedQuery) {
+      setError("Please enter a valid search term.");
+      return;
+    }
+    setError("");
+
+    // 2. Explicit Routing based on Dropdown
+    if (searchType === "full_name") {
+      if (!trimmedQuery.includes("/")) {
+        setError("Please enter in owner/repo format (e.g., facebook/react)");
+        return;
+      }
+      const parts = trimmedQuery.split("/");
+      if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) {
+        const cleanOwner = parts[0].trim();
+        const cleanRepo = parts[1].trim();
+        router.push(`/repository/${cleanOwner}/${cleanRepo}`);
+        return;
+      } else {
+        setError("Invalid format. Use owner/repo (e.g., facebook/react)");
+        return;
+      }
+    }
+
+    // 3. Normal Search: Route to Search Results page with Type
+    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}&type=${searchType}`);
+  };
+
+  const getPlaceholder = () => {
+    if (searchType === "full_name") return "Search owner/repo (e.g. facebook/react)...";
+    if (searchType === "users") return "Search user/org (e.g. vercel)...";
+    return "Search repos (e.g. react)...";
+  };
   return (
     <header className="flex flex-col items-center justify-center pt-10 pb-6 space-y-4">
       {/* Logo and Title */}
       <div className="flex flex-col items-center space-y-2">
-        {/* We can use an SVG or Image for the GitHub logo. Using a placeholder for now, 
-            or better yet, a simple white circle resembling the logo for prototyping */}
         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -31,15 +76,35 @@ export default function Header() {
       </div>
 
       {/* Search Bar */}
-      <div className="w-full max-w-md px-4 mt-6">
-        <div className="relative flex items-center w-full h-12 rounded-full bg-white px-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+      <div className="w-full max-w-lg px-4 mt-6">
+        <form onSubmit={handleSearch} className="relative flex items-center w-full h-12 rounded-full bg-white px-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+          <select
+            className="h-full bg-transparent text-sm font-semibold text-gray-700 outline-none border-none pr-2 cursor-pointer"
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value as "users" | "repositories" | "full_name")}
+          >
+            <option value="repositories">Repository Name</option>
+            <option value="users">User / Org</option>
+            <option value="full_name">Full Repository</option>
+          </select>
+          <div className="h-6 w-px bg-gray-300 mx-2"></div>
           <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
           <input
             className="w-full h-full text-black bg-transparent outline-none placeholder:text-gray-400 text-sm font-medium"
             type="text"
-            placeholder="Discovery and get to know more ..."
+            placeholder={getPlaceholder()}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (error) setError(""); // Clear error when typing
+            }}
           />
-        </div>
+        </form>
+        {error && (
+          <p className="text-red-500 text-xs text-center mt-2 font-medium animate-pulse">
+            {error}
+          </p>
+        )}
       </div>
     </header>
   );
